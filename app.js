@@ -10,9 +10,9 @@ var webhookRouter = require('./routes/webhook');
 
 const AudioServer = require("./socket/AudioSocket");
 
-// const { handleSocketGoogle } = require("./socket/socket_google");
+const { handleSocketGoogle } = require("./socket/socket_google");
 const { handleSocketAzure } = require("./socket/socket_azure");
-// const { handleSocketAzure } = require("./socket/AudioSocket");
+const { handleSocketAws } = require("./socket/socket_aws");
 
 var app = express();
 
@@ -29,22 +29,37 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/webhook', webhookRouter);
 
-// // Socket Server Google
-// const socketServerGoogle = net.createServer(handleSocketGoogle);
+var provider = process.env.PROVIDER || "AZURE";
 
-// const PORT = process.env.PORT || 5002;
-// socketServerGoogle.listen(PORT, () => {
-//   console.log(`(GOOGLE) Socket Server Running on Port : ${PORT}`);
-// });
+if(provider === "GOOGLE"){
+  // Socket Server Google
+  const socketServerGoogle = net.createServer(handleSocketGoogle);
+  
+  const PORT = process.env.PORT || 5001;
+  socketServerGoogle.listen(PORT, () => {
+    console.log(`(GOOGLE) Socket Server Running on Port : ${PORT}`);
+  });
 
-//Socket Server Azure
-const socketServerAzure = net.createServer(handleSocketAzure);
+} else if(provider === "AZURE") {
+  //Socket Server Azure
+  const socketServerAzure = net.createServer(handleSocketAzure);
+  
+  const PORTAZURE = process.env.PORTAZURE || 5001;
+  socketServerAzure.listen(PORTAZURE, () => {
+    console.log(`(AZURE) Socket Server Running on Port : ${PORTAZURE}`);
+  });
 
-const PORTAZURE = process.env.PORTAZURE || 5001;
-socketServerAzure.listen(PORTAZURE, () => {
-  console.log(`(AZURE) Socket Server Running on Port : ${PORTAZURE}`);
-});
+} else if(provider === "AWS") {
+  //Socket Server AWS
+  const socketServerAws = net.createServer(handleSocketAws);
+  
+  const PORTAWS = process.env.PORTAWS || 5001;
+  socketServerAws.listen(PORTAWS, () => {
+    console.log(`(AWS) Socket Server Running on Port : ${PORTAWS}`);
+  });
+}
 
+// TEST AUDIOSOCKET LIB
 // const audioServer = new AudioServer(process.env.PORTAZURE || 5001);
 // audioServer.start();
 

@@ -6,6 +6,8 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "@aws-sdk/client-polly": "^3.787.0",
+    "@aws-sdk/client-transcribe-streaming": "^3.787.0",
     "@fonoster/streams": "^0.9.30",
     "@google-cloud/speech": "^6.7.1",
     "@google-cloud/text-to-speech": "^5.8.1",

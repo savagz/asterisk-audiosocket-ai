@@ -19,10 +19,12 @@ Convierte la voz del usuario a texto (STT), lo envía a un webhook (por ejemplo,
 - **Speech-to-Text (STT)**:
   - Google STT
   - Azure STT
+  - Amazon AWS STT 
 - **Webhook Handler**: Envía texto al endpoint de IA y espera respuesta.
 - **Text-to-Speech (TTS)**:
   - Google TTS
   - Azure TTS
+  - Amazon AWS TTS (Polly)
 - **Audio Streamer**: Reproduce la respuesta en la llamada activa.
 
 ## ⚙️ Configuración
@@ -54,12 +56,20 @@ TEXT_TO_SPEECH_GENDER=
 TEXT_TO_SPEECH_NAME=
 SPEECH_RECOGNITION_LANGUAGE=
 
+AWS_REGION=us-east-1
+AWS_POLLY_ACCESS_KEY_ID=
+AWS_POLLY_ACCESS_KEY=
+AWS_TRANSCRIPT_ACCESS_KEY_ID=
+AWS_TRANSCRIPT_ACCESS_KEY=
+
 AMIHOST=
 AMIUSER=
 AMIPASSWD=
 
 WEBHOOOK_URL=/webhook/
 WEBHOOOK_URL_BASE=http://localhost:3000
+
+PROVIDER=AWS/GOOGLE/AZURE
 ```
 
 ### 4. Ejecutar la app
