@@ -17,7 +17,10 @@ const polly = new PollyClient({ region: process.env.AWS_REGION, credentials: { a
 const transcribeClient = new TranscribeStreamingClient({ region: process.env.AWS_REGION, credentials: { accessKeyId: process.env.AWS_TRANSCRIPT_ACCESS_KEY_ID, secretAccessKey: process.env.AWS_TRANSCRIPT_ACCESS_KEY }});
 
 const ami = new AMIService(appasterisk, applogger);
-ami.start();
+if(!ami.getAmiConn()){
+    ami.initialize();
+}
+console.log(`[HS][AWS] - [${process.pid}] : Initialize.`);
 
 function handleSocketAws(socket) {
     console.log("[HS] Socket Client Connected.");
@@ -26,7 +29,7 @@ function handleSocketAws(socket) {
     var fileAudio = null;
 
     const _api = process.env.WEBHOOK_URL_BASE
-        ? axios.create({ baseURL: process.env.WEBHOOK_URL_BASE })
+        ? axios.create({ baseURL: process.env.WEBHOOK_URL_BASE + process.env.WEBHOOK_URL_PORT })
         : null;
 
     const audioInputStream = new PassThrough();
@@ -73,7 +76,7 @@ function handleSocketAws(socket) {
     };
 
     startTranscription().catch(err => {
-        console.error("[HS] Transcribe Error:", err);
+        console.error(`[HS][AWS] - [${process.pid}] : Transcribe Error : `, err);
     });
 
     // TRANSFORM
@@ -121,7 +124,7 @@ function handleSocketAws(socket) {
                 }
             }
         } catch (error) {
-            console.error("[HS] Polly TTS Error:", error);
+            console.error(`[HS][AWS] - [${process.pid}] : Polly TTS Error: `, error);
         }
     }, 1);
 
@@ -152,12 +155,12 @@ function handleSocketAws(socket) {
 
         console.log(util.inspect(_messages, { showHidden: false, depth: null }));
         _messages = [];
-        console.log("[HS] Socket Client Disconnected. " + socket.uuid);
+        console.log(`[HS][AWS] - [${process.pid}] : Socket Client Disconnected.`);
     });
 
     socket.on("error", (err) => {
         audioInputStream.destroy();
-        console.error("[HS] Socket error:", err.message);
+        console.error(`[HS][AWS] - [${process.pid}] : Socket Error : `, err.message);
     });
 }
 

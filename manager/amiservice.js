@@ -21,7 +21,7 @@ class AMIService {
 	}
 
 	/** Start Asterisk AMI */
-	start() {
+	initialize() {
 		this.amiio = AmiIo.createClient(this.config);
 		this.#amiconnect();
 		this.#amievents();
@@ -159,6 +159,8 @@ class AMIService {
 				case 'LocalOptimizationEnd':
 				case 'PresenceStatus':
 				case 'ContactStatus':
+				case 'ChanSpyStop':
+				case 'ChanSpyStart':
 					// Nothing to Do
 					break;
 				default:
@@ -212,4 +214,4 @@ class AMIService {
 
 // ------------- Exports ------------- //
 
-module.exports = AMIService
+module.exports =  AMIService 

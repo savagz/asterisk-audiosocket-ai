@@ -15,12 +15,9 @@ function handleSocketGoogle(socket) {
     let _assistant = false;
 
     // API WebHook
-    let _api = null;
-    if (process.env.WEBHOOK_URL_BASE) {
-        _api = axios.create({
-            baseURL: process.env.WEBHOOK_URL_BASE
-        });
-    }
+    const _api = process.env.WEBHOOK_URL_BASE
+        ? axios.create({ baseURL: process.env.WEBHOOK_URL_BASE + process.env.WEBHOOK_URL_PORT })
+        : null;
 
     // TRANSFORM
     const _transform = new Transform({

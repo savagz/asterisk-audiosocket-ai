@@ -18,10 +18,14 @@ const { appasterisk, applogger, infotransfer } = require("../config/amiconfig");
 require("dotenv").config();
 
 const ami = new AMIService(appasterisk, applogger);
-ami.start();
+if(!ami.getAmiConn()){
+    ami.initialize();
+}
+console.log(`[HS][AZR] - [${process.pid}] : Initialize.`);
 
 function handleSocketAzure(socket) {
-    console.log("[HS] Socket Client Connected.");
+    console.log(`[HS][AZR] - [${process.pid}] : Socket Client Connected.`);
+    socket.setNoDelay(true);
     let _messages = [];
     let _runStreaming = false;
     let _assistant = false;
@@ -29,16 +33,16 @@ function handleSocketAzure(socket) {
 
     // API WebHook
     const _api = process.env.WEBHOOK_URL_BASE
-        ? axios.create({ baseURL: process.env.WEBHOOK_URL_BASE })
+        ? axios.create({ baseURL: process.env.WEBHOOK_URL_BASE +""+ process.env.WEBHOOK_URL_PORT })
         : null;
-
+console.log(_api);
     // Configuración de audio
     const pushStream = sdk.PushAudioInputStream.create(audioFormat);
     const audioConfig = sdk.AudioConfig.fromStreamInput(pushStream);
 
     // Speech to Text   
     const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
-    console.log("[HS] Azure Recognizer Started. ");
+    console.log(`[HS][AZR] - [${process.pid}] : Azure Recognizer Started.`);
     recognizer.recognized = async (_, event) => {
         if (event.privResult.privReason === sdk.ResultReason.RecognizedSpeech) {
             const _transcript = event.privResult.privText.trim();
@@ -84,7 +88,7 @@ function handleSocketAzure(socket) {
 
     // Text-to-Speech
     const synthesizer = new sdk.SpeechSynthesizer(speechConfig);
-    console.log("[HS] Azure Synthesizer Started.");
+    console.log(`[HS][AZR] - [${process.pid}] : Azure Synthesizer Started.`);
 
     // QUEUE
     const queue = async.queue(async ({ message }) => {
@@ -129,7 +133,7 @@ function handleSocketAzure(socket) {
             }
             
         } catch (error) {
-            console.error("[HS] Error synthesizing speech:", error);
+            console.log(`[HS][AZR] - [${process.pid}] : Error synthesizing speech: `, error);
         }
     }, 1);
 
@@ -137,8 +141,8 @@ function handleSocketAzure(socket) {
     queue.push({ message: "En que puedo ayudarte ?" });
 
     recognizer.startContinuousRecognitionAsync(
-        () => console.log('[HS] Speech Recognition Started'),
-        err => console.error('[HS] Speech Recognition Error:', err)
+        () => console.log(`[HS][AZR] - [${process.pid}] : Speech Recognition Started.`),
+        err => console.log(`[HS][AZR] - [${process.pid}] : Speech Recognition Error: `, err)
     );
 
     // SOCKET HANDLERS
@@ -153,14 +157,14 @@ function handleSocketAzure(socket) {
         recognizer.stopContinuousRecognitionAsync();
         synthesizer.close();
 
-        console.log(util.inspect(_messages, { showHidden: false, depth: null }));
+        console.log(`[HS][AZR] - [${process.pid}] :`, util.inspect(_messages, { showHidden: false, depth: null }));
         _messages = [];
 
         if (fs.existsSync(fileAudio)) {
             fs.unlinkSync(fileAudio);
         }
 
-        console.log("[HS] Socket Client Disconnected. " + socket.uuid);
+        console.log(`[HS][AZR] - [${process.pid}] : Socket Client Disconnected: ${socket.uuid}`);
     });
 
     socket.on("error", (err) => {
@@ -168,7 +172,7 @@ function handleSocketAzure(socket) {
         recognizer.stopContinuousRecognitionAsync();
         synthesizer.close();
 
-        console.error("[HS] Socket error: " + err.message);
+        console.log(`[HS][AZR] - [${process.pid}] : Socket Error: ${err.message}.`);
     });
 }
 

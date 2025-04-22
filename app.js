@@ -1,82 +1,93 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+var cookieParser = require("cookie-parser");
+var createError = require("http-errors");
+var express = require("express");
+var logger = require("morgan");
+var path = require("path");
+
 const net = require("net");
+const cluster = require("cluster");
+const os = require("os");
 
-var indexRouter = require('./routes/index');
-var webhookRouter = require('./routes/webhook');
+require("dotenv").config();
 
-const AudioServer = require("./socket/AudioSocket");
+// TOTAL CPUs
+const numCPUs =
+  os.cpus().length > 2 ? (os.cpus().length / 2).toFixed(0) : os.cpus().length;
 
-const { handleSocketGoogle } = require("./socket/socket_google");
-const { handleSocketAzure } = require("./socket/socket_azure");
-const { handleSocketAws } = require("./socket/socket_aws");
+// Routes Files
+var indexRouter = require("./routes/index");
+var webhookRouter = require("./routes/webhook");
 
+// const AudioServer = require("./socket/AudioSocket");
+
+// Express App
 var app = express();
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+// View Engine Setup
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "jade");
 
-app.use(logger('dev'));
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 
-app.use('/', indexRouter);
-app.use('/webhook', webhookRouter);
+// Routes
+app.use("/", indexRouter);
+app.use("/webhook", webhookRouter);
 
 var provider = process.env.PROVIDER || "AZURE";
 
-if(provider === "GOOGLE"){
-  // Socket Server Google
+// Socket Server Google
+if (provider === "GOOGLE") {
+  const { handleSocketGoogle } = require("./socket/socket_google");
   const socketServerGoogle = net.createServer(handleSocketGoogle);
-  
-  const PORT = process.env.PORT || 5001;
-  socketServerGoogle.listen(PORT, () => {
-    console.log(`(GOOGLE) Socket Server Running on Port : ${PORT}`);
+
+  const PORTGOOGLE = process.env.SOCKET_PORT || 5001;
+  socketServerGoogle.listen(PORTGOOGLE, () => {
+    console.log(`(GOOGLE) [${process.pid}] Socket Server Running on Port : ${PORTGOOGLE}`);
   });
 
-} else if(provider === "AZURE") {
   //Socket Server Azure
+} else if (provider === "AZURE") {
+  const { handleSocketAzure } = require("./socket/socket_azure");
   const socketServerAzure = net.createServer(handleSocketAzure);
-  
-  const PORTAZURE = process.env.PORTAZURE || 5001;
+
+  const PORTAZURE = process.env.SOCKET_PORT || 5001;
   socketServerAzure.listen(PORTAZURE, () => {
-    console.log(`(AZURE) Socket Server Running on Port : ${PORTAZURE}`);
+    console.log(`(AZURE) [${process.pid}] Socket Server Running on Port : ${PORTAZURE}`);
   });
 
-} else if(provider === "AWS") {
   //Socket Server AWS
+} else if (provider === "AWS") {
+  const { handleSocketAws } = require("./socket/socket_aws");
   const socketServerAws = net.createServer(handleSocketAws);
-  
-  const PORTAWS = process.env.PORTAWS || 5001;
+
+  const PORTAWS = process.env.SOCKET_PORT || 5001;
   socketServerAws.listen(PORTAWS, () => {
-    console.log(`(AWS) Socket Server Running on Port : ${PORTAWS}`);
+    console.log(`(AWS) [${process.pid}] Socket Server Running on Port : ${PORTAWS}`);
   });
 }
 
-// TEST AUDIOSOCKET LIB
+// Test AUDIOSOCKET (Not Used)
 // const audioServer = new AudioServer(process.env.PORTAZURE || 5001);
 // audioServer.start();
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  res.locals.error = req.app.get("env") === "development" ? err : {};
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.render("error");
 });
 
 module.exports = app;

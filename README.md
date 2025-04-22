@@ -67,15 +67,26 @@ AMIUSER=
 AMIPASSWD=
 
 WEBHOOOK_URL=/webhook/
-WEBHOOOK_URL_BASE=http://localhost:3000
+WEBHOOOK_URL_BASE=http://localhost:
+WEBHOOOK_URL_PORT=3004
 
 PROVIDER=AWS/GOOGLE/AZURE
+PORT=3004
+SOCKET_PORT=5001
 ```
 
 ### 4. Ejecutar la app
 
+La App inicializa el cluster y el express de forma independiente
+
+Terminal 1:
 ```bash
 npm run start
+```
+
+Terminal 2:
+```bash
+node app.js
 ```
 
 ## 🔁 Flujo de Interacción
