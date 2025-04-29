@@ -35,7 +35,7 @@ function handleSocketAzure(socket) {
     const _api = process.env.WEBHOOK_URL_BASE
         ? axios.create({ baseURL: process.env.WEBHOOK_URL_BASE +""+ process.env.WEBHOOK_URL_PORT })
         : null;
-console.log(_api);
+
     // Configuración de audio
     const pushStream = sdk.PushAudioInputStream.create(audioFormat);
     const audioConfig = sdk.AudioConfig.fromStreamInput(pushStream);
